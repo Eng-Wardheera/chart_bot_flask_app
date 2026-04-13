@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+<meta charset="UTF-8">
+<title>Advanced Chat Bot</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #e5ddd5;
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.chat-container {
+    width: 400px;
+    background: #fff;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+/* HEADER */
+.chat-header {
+    background: #075e54;
+    color: white;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.chat-header img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+/* CHAT BOX */
+#chat-box {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+/* MESSAGE */
+.message {
+    display: flex;
+    margin: 8px 0;
+}
+
+.message img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+
+/* BOT */
+.bot {
+    align-items: flex-start;
+}
+
+.bot .text {
+    background: #ffffff;
+    margin-left: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+}
+
+/* USER */
+.user {
+    justify-content: flex-end;
+}
+
+.user .text {
+    background: #dcf8c6;
+    margin-right: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+}
+
+/* INPUT */
+.input-area {
+    display: flex;
+    border-top: 1px solid #ccc;
+}
+
+input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+}
+
+button {
+    padding: 10px;
+    background: #075e54;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="chat-container">
+
+    <!-- HEADER -->
+    <div class="chat-header">
+        <img src="https://i.imgur.com/7k12EPD.png">
+        <div>
+            <strong>Chat Bot</strong><br>
+            <small>Online</small>
+        </div>
+    </div>
+
+    <!-- CHAT -->
+    <div id="chat-box"></div>
+
+    <!-- INPUT -->
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Qor jawaabta...">
+        <button onclick="sendAnswer()">Dir</button>
+    </div>
+
+</div>
+
+<script>
+let step = 0;
+
+// avatars
+const botAvatar = "https://i.imgur.com/7k12EPD.png";
+const userAvatar = "https://i.imgur.com/6VBx3io.png";
+
+function addMessage(message, sender) {
+    const chatBox = document.getElementById("chat-box");
+
+    const msgDiv = document.createElement("div");
+    msgDiv.classList.add("message", sender);
+
+    const img = document.createElement("img");
+    img.src = sender === "bot" ? botAvatar : userAvatar;
+
+    const text = document.createElement("div");
+    text.classList.add("text");
+    text.innerText = message;
+
+    if (sender === "bot") {
+        msgDiv.appendChild(img);
+        msgDiv.appendChild(text);
+    } else {
+        msgDiv.appendChild(text);
+        msgDiv.appendChild(img);
+    }
+
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function getQuestion() {
+    fetch(`/get_question?step=${step}`)
+        .then(res => res.json())
+        .then(data => {
+            addMessage(data.question, "bot");
+        });
+}
+
+function sendAnswer() {
+    const input = document.getElementById("user-input");
+    const answer = input.value;
+
+    if (answer.trim() === "") return;
+
+    addMessage(answer, "user");
+
+    fetch("/answer", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            answer: answer,
+            step: step
+        })
+    });
+
+    input.value = "";
+    step++;
+
+    setTimeout(getQuestion, 500);
+}
+
+window.onload = getQuestion;
+</script>
+
+</body>
+</html>
