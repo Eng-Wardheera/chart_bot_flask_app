@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-# Su'aalo bot-ka
 questions = [
     "Magacaa?",
     "Imisa jir baad tahay?",
@@ -13,12 +12,12 @@ questions = [
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return "Flask app is running!"
 
-@app.route("/get_question", methods=["GET"])
+@app.route("/get_question")
 def get_question():
     step = int(request.args.get("step", 0))
-    
+
     if step < len(questions):
         return jsonify({"question": questions[step]})
     else:
@@ -27,12 +26,9 @@ def get_question():
 @app.route("/answer", methods=["POST"])
 def answer():
     data = request.get_json()
-    user_answer = data.get("answer")
-    step = data.get("step")
-
-    print(f"User Answer {step}: {user_answer}")
-
+    print(data)
     return jsonify({"status": "ok"})
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# IMPORTANT for Vercel
+def handler(environ, start_response):
+    return app(environ, start_response)
